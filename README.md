@@ -1,3 +1,7 @@
+# Meme repository warning
+This is a repo of my test task for the first epic IT job I had in my life (Pipedrive Infra)  
+Originally created 30th of August, 2021
+
 ### Requirements  
  - `Docker`
  - `docker-compose`
