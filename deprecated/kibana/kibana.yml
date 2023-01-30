@@ -1,0 +1,6 @@
+elasticsearch.hosts:
+  - http://es0:9200
+  - http://es1:9200
+  - http://es2:9200
+server.host: "localhost"
+server.port: "5601"

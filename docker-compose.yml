@@ -1,0 +1,91 @@
+version: '3.3'
+services:
+
+  es0:
+    # image from elastic (Technically not docker hub :D)
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+    container_name: es0
+    # pass configuration as environment variables bcause image allows that
+    environment:
+      - node.name=es0
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es1,es2
+      - cluster.initial_master_nodes=es0,es1,es2
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    # disable memory limits for container
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    # map container :9200 to host machine :9200 to access elastic api with browser 
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+
+  es1:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+    container_name: es1
+    environment:
+      - node.name=es1
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es0,es2
+      - cluster.initial_master_nodes=es0,es1,es2
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elastic
+
+  es2:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+    container_name: es2
+    environment:
+      - node.name=es2
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es0,es1
+      - cluster.initial_master_nodes=es0,es1,es2
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elastic
+  
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.14.0
+    container_name: kibana
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es0:9200
+      ELASTICSEARCH_HOSTS: '["http://es0:9200","http://es01:9200","http://es2:9200"]'
+    networks:
+      - elastic
+    
+  logstash:
+    build: 
+      context: ./logstash
+      dockerfile: Dockerfile
+    container_name: logstash
+    networks: 
+      - elastic
+
+  filebeat:
+    build: 
+      context: ./filebeat
+      dockerfile: Dockerfile
+    container_name: filebeat
+    networks: 
+      - elastic
+
+
+networks:
+  elastic:
+    driver: bridge
